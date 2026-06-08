@@ -1,0 +1,7 @@
+model,stratum,crps,mean_pinball_loss,interval_width,n
+gpt-4o-demo,regional_inference,2.324638376268556,0.7333333333333333,22.0,2
+gpt-4o-demo,specific_station,1.6906460918316772,0.5333333333333333,16.0,2
+gpt-4o-demo,underspecified,3.592622945142314,1.1333333333333333,34.0,2
+gpt-4o-mini-demo,regional_inference,2.113307614789597,0.6666666666666666,20.0,2
+gpt-4o-mini-demo,specific_station,2.113307614789597,0.6666666666666666,20.0,2
+gpt-4o-mini-demo,underspecified,2.113307614789597,0.6666666666666666,20.0,2

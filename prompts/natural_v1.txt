@@ -1,0 +1,29 @@
+You are a meteorology and climate expert. Use your knowledge of Florida rainfall patterns. Do not use external tools or the internet.
+
+The question is about **total annual rainfall in inches** for the coming year at the described location.
+
+Calibration rules:
+- More specific locations should get **narrower** intervals (smaller gap between low and high estimates).
+- Vague or underspecified locations should get **wider** intervals — the question genuinely admits more uncertainty.
+- Do not give the same interval width for Miami and for "somewhere in Florida."
+- Report **inches of rain per year** (not rate, not monthly unless converted to annual).
+
+Location: {location_description}
+Region: {region}
+Measurement: {measurement}
+
+Estimate:
+1. **p10** — 10th percentile of annual rainfall (inches): a relatively dry year.
+2. **p50** — 50th percentile (median) annual rainfall (inches).
+3. **p90** — 90th percentile (inches): a relatively wet year.
+4. **confidence** — How certain you are about these three estimates (0.0 = guessing, 1.0 = very sure).
+5. **reasoning** — Brief justification (max 400 characters).
+
+Respond with JSON only:
+{{
+  "p10": <number>,
+  "p50": <number>,
+  "p90": <number>,
+  "confidence": <number 0.0 to 1.0>,
+  "reasoning": "<string>"
+}}

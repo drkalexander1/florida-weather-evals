@@ -1,0 +1,73 @@
+{
+  "target_source": "curator_target_quantiles",
+  "overall": {
+    "n": 12,
+    "crps": 2.324638376268556,
+    "mean_pinball_loss": 0.7333333333333333,
+    "mean_interval_width": 22.0,
+    "mean_median_abs_error": 0.0,
+    "ece_confidence": 0.2
+  },
+  "by_model": {
+    "gpt-4o-demo": {
+      "n": 6,
+      "crps": 2.5359691377475158,
+      "mean_pinball_loss": 0.7999999999999999,
+      "mean_interval_width": 24.0,
+      "mean_median_abs_error": 0.0,
+      "ece_confidence": 0.25
+    },
+    "gpt-4o-mini-demo": {
+      "n": 6,
+      "crps": 2.1133076147895973,
+      "mean_pinball_loss": 0.6666666666666666,
+      "mean_interval_width": 20.0,
+      "mean_median_abs_error": 0.0,
+      "ece_confidence": 0.15000000000000002
+    }
+  },
+  "by_stratum": {
+    "regional_inference": {
+      "n": 4,
+      "crps": 2.2189729955290765,
+      "mean_pinball_loss": 0.7,
+      "mean_interval_width": 21.0,
+      "mean_median_abs_error": 0.0,
+      "ece_confidence": 0.2
+    },
+    "specific_station": {
+      "n": 4,
+      "crps": 1.9019768533106371,
+      "mean_pinball_loss": 0.6,
+      "mean_interval_width": 18.0,
+      "mean_median_abs_error": 0.0,
+      "ece_confidence": 0.2
+    },
+    "underspecified": {
+      "n": 4,
+      "crps": 2.8529652799659555,
+      "mean_pinball_loss": 0.9,
+      "mean_interval_width": 27.0,
+      "mean_median_abs_error": 0.0,
+      "ece_confidence": 0.2
+    }
+  },
+  "by_prompt_variant": {
+    "natural": {
+      "n": 6,
+      "crps": 2.324638376268556,
+      "mean_pinball_loss": 0.7333333333333334,
+      "mean_interval_width": 22.0,
+      "mean_median_abs_error": 0.0,
+      "ece_confidence": 0.2
+    },
+    "statistical": {
+      "n": 6,
+      "crps": 2.324638376268556,
+      "mean_pinball_loss": 0.7333333333333334,
+      "mean_interval_width": 22.0,
+      "mean_median_abs_error": 0.0,
+      "ece_confidence": 0.2
+    }
+  }
+}

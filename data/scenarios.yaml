@@ -1,0 +1,74 @@
+# 6 scenarios: 2 per specificity stratum (natural + statistical prompt variants)
+# target_p* = curator estimates until data/fawn_sync.json is generated from FAWN CSVs
+
+# --- specific_station (Miami area; FAWN station 440 Homestead) ---
+- id: miami_natural
+  stratum: specific_station
+  prompt_variant: natural
+  location_description: >-
+    My grandma lives in Miami, Florida. How much rain should she expect over the next year?
+  fawn_station_id: "440"
+  target_p10: 54.0
+  target_p50: 62.0
+  target_p90: 70.0
+  notes: Homestead FAWN station (Miami-Dade); narrow interval expected
+
+- id: miami_statistical
+  stratum: specific_station
+  prompt_variant: statistical
+  location_description: >-
+    A FAWN agricultural monitoring station in Miami-Dade County, Florida (Homestead, station 440).
+  fawn_station_id: "440"
+  target_p10: 54.0
+  target_p50: 62.0
+  target_p90: 70.0
+  notes: Same ground truth as miami_natural; statistical phrasing
+
+# --- regional_inference (Gulf coast ~100k city; FAWN station 480 North Port) ---
+- id: gulf_city_natural
+  stratum: regional_inference
+  prompt_variant: natural
+  location_description: >-
+    My grandma lives in a Gulf coast Florida city of about 100,000 people — not Miami or Tampa.
+    How much rain should she expect over the next year?
+  fawn_station_id: "480"
+  target_p10: 44.0
+  target_p50: 54.0
+  target_p90: 66.0
+  notes: North Port FAWN station (Charlotte County Gulf coast); moderate interval
+
+- id: gulf_city_statistical
+  stratum: regional_inference
+  prompt_variant: statistical
+  location_description: >-
+    A Gulf coast Florida city with roughly 100,000 residents (North Port, FAWN station 480).
+  fawn_station_id: "480"
+  target_p10: 44.0
+  target_p50: 54.0
+  target_p90: 66.0
+  notes: Same ground truth as gulf_city_natural
+
+# --- underspecified (random Florida location) ---
+- id: random_fl_natural
+  stratum: underspecified
+  prompt_variant: natural
+  location_description: >-
+    My grandma lives somewhere in Florida — I do not know the city. How much rain should she
+    expect over the next year?
+  fawn_station_id: null
+  target_p10: 38.0
+  target_p50: 52.0
+  target_p90: 72.0
+  notes: Pooled across FAWN stations; wide interval expected
+
+- id: random_fl_statistical
+  stratum: underspecified
+  prompt_variant: statistical
+  location_description: >-
+    A random Florida agricultural monitoring station drawn uniformly from the FAWN network
+    (any of the ~53 stations statewide).
+  fawn_station_id: null
+  target_p10: 38.0
+  target_p50: 52.0
+  target_p90: 72.0
+  notes: Cross-station pooled distribution; statistical phrasing

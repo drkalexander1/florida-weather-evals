@@ -1,0 +1,30 @@
+[project]
+name = "florida-weather-evals"
+version = "0.1.0"
+description = "LLM eval benchmark for Florida rainfall calibration with FAWN-verified targets"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "httpx>=0.27.0",
+    "pydantic>=2.0",
+    "openai>=1.40.0",
+    "anthropic>=0.34.0",
+    "python-dotenv>=1.0.0",
+    "pandas>=2.2.0",
+    "matplotlib>=3.8.0",
+    "pyyaml>=6.0",
+    "numpy>=1.26.0",
+]
+
+[project.scripts]
+validate-scenarios = "src.validate_scenarios:main"
+run-eval = "src.run_eval:main"
+score-eval = "src.score:main"
+sync-fawn-targets = "src.fawn_sync:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]

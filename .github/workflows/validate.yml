@@ -1,0 +1,23 @@
+name: Validate dataset
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install package
+        run: pip install -e .
+      - name: Validate scenarios
+        run: python -m src.validate_scenarios
+      - name: Demo scoring smoke test
+        run: |
+          python scripts/generate_demo_predictions.py
+          python -m src.score --run results/demo

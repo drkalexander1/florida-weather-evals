@@ -1,0 +1,53 @@
+# FAWN station IDs from https://fawn.ifas.ufl.edu/data/fawn_data_qaqc_pub/metadata.txt
+# Use: python -m src.fawn_sync --list-stations
+
+60: Belle Glade
+110: Jay
+111: StrawB1
+120: DeFuniak Springs
+121: Mayo
+130: Marianna
+140: Quincy
+150: Carrabelle
+160: Monticello
+170: Live Oak
+180: Macclenny
+230: Bronson
+240: Putnam Hall
+241: Joshua
+250: Citra
+260: Alachua
+261: StrawB2
+270: Hastings
+275: Lecanto
+280: Ocklawaha
+290: Pierson
+301: Tavares
+302: Umatilla
+303: Okahumpka
+304: Avalon
+310: Brooksville
+311: Dade City
+320: Apopka
+330: Lake Alfred
+340: Kenansville
+350: Balm
+360: Dover
+370: Bradenton
+371: Indian River
+380: Ona
+390: Frostproof
+405: Clewiston
+410: Belle Glade 2
+420: Fort Lauderdale
+425: Wellington
+430: Fort Pierce
+435: St. Lucie West
+440: Homestead
+450: Immokalee
+455: Okeechobee
+460: Palmdale
+470: Sebring
+480: North Port
+490: Arcadia
+510: Portable Tower

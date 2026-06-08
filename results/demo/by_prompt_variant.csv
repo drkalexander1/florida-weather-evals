@@ -1,0 +1,5 @@
+model,prompt_variant,crps,mean_pinball_loss,interval_width,n
+gpt-4o-demo,natural,2.5359691377475158,0.7999999999999999,24.0,3
+gpt-4o-demo,statistical,2.5359691377475158,0.7999999999999999,24.0,3
+gpt-4o-mini-demo,natural,2.113307614789597,0.6666666666666666,20.0,3
+gpt-4o-mini-demo,statistical,2.113307614789597,0.6666666666666666,20.0,3
