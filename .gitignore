@@ -19,6 +19,7 @@ data/fawn_raw/extracted/
 
 results/*
 !results/demo/
+results/combined_*.json
 
 *.egg-info/
 dist/

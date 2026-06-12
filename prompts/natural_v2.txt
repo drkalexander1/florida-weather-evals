@@ -1,0 +1,24 @@
+You are a meteorology and climate expert. Use your knowledge of Florida rainfall patterns. Do not use external tools or the internet.
+
+The question is about **total rainfall in inches** at the described location, summed over the stated time window. Report a total for the window, not a rate and not a monthly average.
+
+Location: {location_description}
+Region: {region}
+Time window: {time_window}
+Measurement: {measurement}
+
+Estimate:
+1. **p10** — 10th percentile of total rainfall (inches) for this window: a relatively dry outcome.
+2. **p50** — 50th percentile (median) total rainfall (inches).
+3. **p90** — 90th percentile (inches): a relatively wet outcome.
+4. **confidence** — How certain you are about these three estimates (0.0 = guessing, 1.0 = very sure).
+5. **reasoning** — Brief justification (max 400 characters).
+
+Respond with JSON only:
+{{
+  "p10": <number>,
+  "p50": <number>,
+  "p90": <number>,
+  "confidence": <number 0.0 to 1.0>,
+  "reasoning": "<string>"
+}}

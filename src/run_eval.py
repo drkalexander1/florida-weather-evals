@@ -60,13 +60,14 @@ def build_prompt(scenario: Scenario) -> str:
     return template.format(
         location_description=scenario.location_description,
         region=scenario.region,
+        time_window=scenario.time_window,
         measurement=scenario.measurement,
     )
 
 
-def get_provider(model: str):
+def get_provider(model: str, *, thinking: bool = False):
     if model.startswith("claude"):
-        return AnthropicProvider(model)
+        return AnthropicProvider(model, thinking=thinking)
     return OpenAIProvider(model)
 
 
@@ -85,14 +86,13 @@ def report_provider_failure(
         )
         return
     saved = sum(1 for line in predictions_path.read_text(encoding="utf-8").splitlines() if line.strip())
+    print(f"Failed on [{model}] {scenario_id}: {exc!r}", file=sys.stderr)
     if saved:
         print(
-            f"Stopped on [{model}] {scenario_id} ({saved} predictions saved). "
-            f"Re-run the same command to resume from {predictions_path}.",
+            f"({saved} predictions saved — re-run the same command to resume "
+            f"from {predictions_path}.)",
             file=sys.stderr,
         )
-    else:
-        print(f"Failed on [{model}] {scenario_id}: {exc}", file=sys.stderr)
 
 
 def load_completed(path: Path) -> dict[tuple[str, str], PredictionRecord]:
@@ -115,6 +115,7 @@ def run(
     limit: int | None = None,
     *,
     fresh: bool = False,
+    thinking: bool = False,
 ) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
     subset = scenarios[:limit] if limit else scenarios
@@ -137,13 +138,14 @@ def run(
         "scenario_count": len(subset),
         "predictions_file": str(predictions_path.name),
         "prompt_versions": {k: v.stem for k, v in PROMPT_PATHS.items()},
+        "thinking": thinking,
     }
     if completed:
         manifest["resumed_from"] = len(completed)
 
     with predictions_path.open("a" if completed else "w", encoding="utf-8") as out:
         for model_name in models:
-            provider = get_provider(model_name)
+            provider = get_provider(model_name, thinking=thinking)
             for scenario in subset:
                 key = (scenario.id, model_name)
                 if key in completed:
@@ -205,12 +207,29 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Ignore existing predictions.jsonl and start over",
     )
+    parser.add_argument(
+        "--thinking",
+        action="store_true",
+        help=(
+            "Enable extended thinking on Claude models (adaptive on Sonnet 4.6 / "
+            "Opus 4.6+, manual budget on Haiku). Fable/Mythos always think. "
+            "Disables temperature=0 (thinking is incompatible with temperature). "
+            "Ignored for OpenAI models."
+        ),
+    )
     args = parser.parse_args(argv)
 
     scenarios = load_scenarios(args.scenarios)
     models = [m.strip() for m in args.models.split(",") if m.strip()]
     _require_api_keys(models)
-    path = run(scenarios, models, args.output, limit=args.limit, fresh=args.fresh)
+    path = run(
+        scenarios,
+        models,
+        args.output,
+        limit=args.limit,
+        fresh=args.fresh,
+        thinking=args.thinking,
+    )
     print(f"Wrote predictions to {path}")
     return 0
 

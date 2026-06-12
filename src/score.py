@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from itertools import combinations
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -31,7 +32,8 @@ def pinball_loss(y: float, q: float, tau: float) -> float:
 
 
 def _extrapolate_margin(q10: float, q50: float, q90: float) -> float:
-    return max(5.0, (q90 - q10) * 0.35)
+    # Scale-aware: dry-season totals (~6 in) need a much smaller tail than annual (~55 in).
+    return max((q90 - q10) * 0.35, q50 * 0.1, 0.5)
 
 
 def forecast_cdf(x: float, q10: float, q50: float, q90: float) -> float:
@@ -122,11 +124,14 @@ def build_frame(
         tgt_p10, tgt_p50, tgt_p90 = scoring_targets(sc, sync)
         p10, p50, p90 = float(pred.p10), float(pred.p50), float(pred.p90)
         median_errors = [abs(p50 - y) for y in ref_years]
+        crps = crps_reference(p10, p50, p90, ref_years)
+        scale = max(tgt_p50, 1.0)
         rows.append(
             {
                 "scenario_id": rec.scenario_id,
                 "model": rec.model,
                 "stratum": sc.stratum,
+                "season": sc.season,
                 "prompt_variant": sc.prompt_variant,
                 "location_description": sc.location_description,
                 "fawn_station_id": sc.fawn_station_id,
@@ -138,13 +143,18 @@ def build_frame(
                 "p50": p50,
                 "p90": p90,
                 "interval_width": p90 - p10,
+                "relative_interval_width": (p90 - p10) / scale,
                 "target_interval_width": tgt_p90 - tgt_p10,
                 "confidence": float(pred.confidence),
-                "crps": crps_reference(p10, p50, p90, ref_years),
+                "crps": crps,
+                # CRPS scales with the variable's magnitude; normalize by the target
+                # median so dry-season and annual scenarios are comparable.
+                "crps_relative": crps / scale,
                 "mean_pinball_loss": float(
                     np.mean([mean_pinball(y, p10, p50, p90) for y in ref_years])
                 ),
                 "median_abs_error": float(np.mean(median_errors)),
+                "median_abs_error_relative": float(np.mean(median_errors)) / scale,
                 "latency_ms": rec.latency_ms,
             }
         )
@@ -153,37 +163,155 @@ def build_frame(
 
 def compute_metrics(df: pd.DataFrame) -> dict:
     conf = df["confidence"].to_numpy(dtype=float)
-    well_calibrated = (df["median_abs_error"] < 5.0).astype(float).to_numpy()
+    # Relative threshold so a 1-inch dry-season miss and a 9-inch annual miss
+    # count the same; floor avoids hypersensitivity on tiny medians.
+    well_calibrated = (df["median_abs_error_relative"] < 0.15).astype(float).to_numpy()
 
     return {
         "n": int(len(df)),
         "crps": float(df["crps"].mean()),
+        "crps_relative": float(df["crps_relative"].mean()),
         "mean_pinball_loss": float(df["mean_pinball_loss"].mean()),
         "mean_interval_width": float(df["interval_width"].mean()),
+        "mean_relative_interval_width": float(df["relative_interval_width"].mean()),
         "mean_median_abs_error": float(df["median_abs_error"].mean()),
         "ece_confidence": expected_calibration_error(well_calibrated, conf),
+    }
+
+
+# Paired power analysis constants: alpha = 0.05 two-sided, 80% power.
+_Z_ALPHA = 1.96
+_Z_BETA = 0.84
+
+
+def pairwise_power_analysis(df: pd.DataFrame) -> dict:
+    """Paired comparison of relative CRPS for every model pair in the run.
+
+    Because all models answer the same scenarios, per-scenario differencing
+    cancels shared scenario difficulty. Reports the observed gap, the paired
+    t statistic at the current n, the scenario count needed for 80% power at
+    the observed gap, and the minimal detectable gap at the current n.
+    """
+    pairs = []
+    for a, b in combinations(sorted(df["model"].unique()), 2):
+        da = df[df["model"] == a].set_index("scenario_id")["crps_relative"]
+        db = df[df["model"] == b].set_index("scenario_id")["crps_relative"]
+        diffs = (da - db).dropna()
+        n = len(diffs)
+        if n < 2:
+            continue
+        delta = float(diffs.mean())
+        sd = float(diffs.std(ddof=1))
+        se = sd / np.sqrt(n)
+        pairs.append(
+            {
+                "model_a": a,
+                "model_b": b,
+                "n_scenarios": n,
+                "delta_crps_relative": delta,
+                "sd_of_paired_diffs": sd,
+                "t_paired": delta / se if se > 0 else float("inf"),
+                "scenarios_needed_80pct_power": (
+                    float((_Z_ALPHA + _Z_BETA) ** 2 * (sd / delta) ** 2)
+                    if delta != 0
+                    else None
+                ),
+                "min_detectable_delta_at_n": float((_Z_ALPHA + _Z_BETA) * se),
+            }
+        )
+    return {
+        "method": (
+            "Paired t on per-scenario crps_relative differences; "
+            "alpha=0.05 two-sided, power=0.80. Treats scenarios as exchangeable, "
+            "which overstates power given shared locations; with multiple pairs, "
+            "apply a multiple-comparison correction before claiming significance."
+        ),
+        "pairs": pairs,
+    }
+
+
+def seasonal_consistency(df: pd.DataFrame) -> dict:
+    """Self-consistency check: annual p50 vs wet + dry season p50s.
+
+    Needs no ground truth. May falls in neither season window and quantiles
+    are not additive, so the calibrated reference is the targets' own gap
+    (~+30%), not zero. Models whose gap deviates far from the target gap, or
+    varies wildly across cells, are internally incoherent across timescales.
+    """
+    sub = df[["scenario_id", "model", "season", "p50", "target_p50"]].copy()
+    parts = sub["scenario_id"].str.rsplit("_", n=2)
+    sub["location"] = parts.str[0]
+    sub["variant"] = parts.str[2]
+    required = {"annual", "wet_season", "dry_season"}
+
+    per_model: dict = {}
+    for model, g in sub.groupby("model"):
+        gaps = []
+        for (_loc, _var), cell in g.groupby(["location", "variant"]):
+            vals = dict(zip(cell["season"], cell["p50"]))
+            if required <= set(vals) and vals["annual"] > 0:
+                gaps.append(
+                    (vals["annual"] - vals["wet_season"] - vals["dry_season"]) / vals["annual"]
+                )
+        if gaps:
+            per_model[model] = {
+                "mean_gap": float(np.mean(gaps)),
+                "min_gap": float(np.min(gaps)),
+                "max_gap": float(np.max(gaps)),
+                "gap_spread": float(np.max(gaps) - np.min(gaps)),
+                "n_cells": len(gaps),
+            }
+    if not per_model:
+        return {}
+
+    target_gaps: dict = {}
+    targets = sub.drop_duplicates(["location", "season"])
+    for loc, g in targets.groupby("location"):
+        vals = dict(zip(g["season"], g["target_p50"]))
+        if required <= set(vals) and vals["annual"] > 0:
+            target_gaps[loc] = float(
+                (vals["annual"] - vals["wet_season"] - vals["dry_season"]) / vals["annual"]
+            )
+
+    return {
+        "method": (
+            "gap = (p50_annual - p50_wet - p50_dry) / p50_annual per location x "
+            "prompt-variant cell. Compare each model's mean_gap to target_gaps "
+            "(the calibrated reference; nonzero because May is in neither season "
+            "and quantiles are not additive). Large gap_spread means the model's "
+            "annual and seasonal answers are internally inconsistent."
+        ),
+        "per_model": per_model,
+        "target_gaps": target_gaps,
     }
 
 
 def plot_interval_width_by_stratum(df: pd.DataFrame, out_dir: Path) -> None:
     if df.empty:
         return
-    grouped = df.groupby(["model", "stratum"], as_index=False)["interval_width"].mean()
-    models = sorted(grouped["model"].unique())
     strata = ["specific_station", "regional_inference", "underspecified"]
+    seasons = [s for s in ["annual", "wet_season", "dry_season"] if s in set(df["season"])]
+    models = sorted(df["model"].unique())
+    bar_w = 0.8 / max(len(models), 1)
     x = np.arange(len(strata))
-    width = 0.8 / max(len(models), 1)
 
-    fig, ax = plt.subplots(figsize=(8, 4))
-    for i, model in enumerate(models):
-        sub = grouped[grouped["model"] == model].set_index("stratum")
-        ys = [sub.loc[s, "interval_width"] if s in sub.index else np.nan for s in strata]
-        ax.bar(x + i * width, ys, width=width, label=model)
-    ax.set_xticks(x + width * (len(models) - 1) / 2)
-    ax.set_xticklabels(strata, rotation=15)
-    ax.set_ylabel("Mean interval width (p90 - p10, inches)")
-    ax.set_title("Interval width by specificity stratum")
-    ax.legend(fontsize=8)
+    fig, axes = plt.subplots(1, max(len(seasons), 1), figsize=(5 * max(len(seasons), 1), 4), squeeze=False)
+    for ax, season in zip(axes[0], seasons):
+        grouped = (
+            df[df["season"] == season]
+            .groupby(["model", "stratum"], as_index=False)["interval_width"]
+            .mean()
+        )
+        for i, model in enumerate(models):
+            sub = grouped[grouped["model"] == model].set_index("stratum")
+            ys = [sub.loc[s, "interval_width"] if s in sub.index else np.nan for s in strata]
+            ax.bar(x + i * bar_w, ys, width=bar_w, label=model)
+        ax.set_xticks(x + bar_w * (len(models) - 1) / 2)
+        ax.set_xticklabels(["specific", "regional", "underspec."], rotation=15)
+        ax.set_title(season)
+        ax.set_ylabel("Mean interval width (in)")
+    axes[0][0].legend(fontsize=8)
+    fig.suptitle("Interval width by specificity stratum and season")
     fig.tight_layout()
     fig.savefig(out_dir / "interval_width_by_stratum.png", dpi=120)
     plt.close(fig)
@@ -210,6 +338,7 @@ def score_run(
         "overall": compute_metrics(df),
         "by_model": {},
         "by_stratum": {},
+        "by_season": {},
         "by_prompt_variant": {},
     }
 
@@ -217,8 +346,16 @@ def score_run(
         summary["by_model"][model] = compute_metrics(sub)
     for stratum, sub in df.groupby("stratum"):
         summary["by_stratum"][stratum] = compute_metrics(sub)
+    for season, sub in df.groupby("season"):
+        summary["by_season"][season] = compute_metrics(sub)
     for variant, sub in df.groupby("prompt_variant"):
         summary["by_prompt_variant"][variant] = compute_metrics(sub)
+
+    if df["model"].nunique() >= 2:
+        summary["power_analysis"] = pairwise_power_analysis(df)
+    consistency = seasonal_consistency(df)
+    if consistency:
+        summary["seasonal_consistency"] = consistency
 
     if sync is not None:
         summary["fawn_sync"] = {
@@ -231,27 +368,24 @@ def score_run(
     (run_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     df.to_csv(run_dir / "by_scenario.csv", index=False)
 
-    by_stratum = (
-        df.groupby(["model", "stratum"], as_index=False)
-        .agg(
-            crps=("crps", "mean"),
-            mean_pinball_loss=("mean_pinball_loss", "mean"),
-            interval_width=("interval_width", "mean"),
-            n=("scenario_id", "count"),
-        )
+    agg_spec = dict(
+        crps=("crps", "mean"),
+        crps_relative=("crps_relative", "mean"),
+        mean_pinball_loss=("mean_pinball_loss", "mean"),
+        interval_width=("interval_width", "mean"),
+        relative_interval_width=("relative_interval_width", "mean"),
+        n=("scenario_id", "count"),
     )
-    by_stratum.to_csv(run_dir / "by_stratum.csv", index=False)
 
-    by_variant = (
-        df.groupby(["model", "prompt_variant"], as_index=False)
-        .agg(
-            crps=("crps", "mean"),
-            mean_pinball_loss=("mean_pinball_loss", "mean"),
-            interval_width=("interval_width", "mean"),
-            n=("scenario_id", "count"),
-        )
+    df.groupby(["model", "stratum", "season"], as_index=False).agg(**agg_spec).to_csv(
+        run_dir / "by_stratum.csv", index=False
     )
-    by_variant.to_csv(run_dir / "by_prompt_variant.csv", index=False)
+    df.groupby(["model", "season"], as_index=False).agg(**agg_spec).to_csv(
+        run_dir / "by_season.csv", index=False
+    )
+    df.groupby(["model", "prompt_variant"], as_index=False).agg(**agg_spec).to_csv(
+        run_dir / "by_prompt_variant.csv", index=False
+    )
 
     plot_interval_width_by_stratum(df, run_dir)
     return summary

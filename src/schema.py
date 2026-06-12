@@ -14,27 +14,47 @@ DATA_DIR = ROOT / "data"
 SCENARIOS_PATH = DATA_DIR / "scenarios.yaml"
 FAWN_SYNC_PATH = DATA_DIR / "fawn_sync.json"
 PROMPT_PATHS = {
-    "natural": ROOT / "prompts" / "natural_v1.txt",
-    "statistical": ROOT / "prompts" / "statistical_v1.txt",
+    "natural": ROOT / "prompts" / "natural_v2.txt",
+    "statistical": ROOT / "prompts" / "statistical_v2.txt",
 }
 
 SpecificityStratum = Literal["specific_station", "regional_inference", "underspecified"]
 PromptVariant = Literal["natural", "statistical"]
+Season = Literal["annual", "wet_season", "dry_season"]
 QUANTILE_LEVELS = (0.1, 0.5, 0.9)
+
+# Months included in each season window. Dry season spans the calendar
+# boundary: December is assigned to the following season-year.
+SEASON_MONTHS: dict[str, tuple[int, ...]] = {
+    "annual": (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12),
+    "wet_season": (6, 7, 8, 9),
+    "dry_season": (12, 1, 2),
+}
+
+SEASON_TIME_WINDOWS: dict[str, str] = {
+    "annual": "one full calendar year (January through December)",
+    "wet_season": "June through September",
+    "dry_season": "December through February",
+}
 
 
 class Scenario(BaseModel):
     id: str
     stratum: SpecificityStratum
+    season: Season
     prompt_variant: PromptVariant
     location_description: str
     fawn_station_id: str | None = None
     region: str = "Florida, USA"
-    measurement: str = "annual rainfall (inches)"
-    target_p10: confloat(gt=0)
-    target_p50: confloat(gt=0)
+    measurement: str = "total rainfall (inches)"
+    target_p10: confloat(ge=0)
+    target_p50: confloat(ge=0)
     target_p90: confloat(gt=0)
     notes: str = ""
+
+    @property
+    def time_window(self) -> str:
+        return SEASON_TIME_WINDOWS[self.season]
 
     @model_validator(mode="after")
     def ordered_quantiles(self) -> Scenario:
@@ -49,8 +69,8 @@ REASONING_MAX_LENGTH = 400
 
 
 class Prediction(BaseModel):
-    p10: confloat(gt=0)
-    p50: confloat(gt=0)
+    p10: confloat(ge=0)
+    p50: confloat(ge=0)
     p90: confloat(gt=0)
     confidence: confloat(ge=0, le=1)
     reasoning: str = Field(max_length=REASONING_MAX_LENGTH)
@@ -102,16 +122,17 @@ class PredictionRecord(BaseModel):
 class FawnScenarioSync(BaseModel):
     scenario_id: str
     fawn_station_id: str | None = None
+    season: Season = "annual"
     reference_years: list[float] = Field(
-        description="Clean annual rainfall totals (inches) used as CRPS observations"
+        description="Clean seasonal rainfall totals (inches) used as CRPS observations, one per season-year"
     )
-    p10: confloat(gt=0)
-    p50: confloat(gt=0)
+    p10: confloat(ge=0)
+    p50: confloat(ge=0)
     p90: confloat(gt=0)
-    mean: confloat(gt=0)
+    mean: confloat(ge=0)
     std: confloat(ge=0)
-    target_p10_curator: confloat(gt=0)
-    target_p50_curator: confloat(gt=0)
+    target_p10_curator: confloat(ge=0)
+    target_p50_curator: confloat(ge=0)
     target_p90_curator: confloat(gt=0)
 
     @field_validator("reference_years")

@@ -1,73 +1,212 @@
 {
-  "target_source": "curator_target_quantiles",
+  "target_source": "fawn_sync",
   "overall": {
-    "n": 12,
-    "crps": 2.324638376268556,
-    "mean_pinball_loss": 0.7333333333333333,
-    "mean_interval_width": 22.0,
-    "mean_median_abs_error": 0.0,
-    "ece_confidence": 0.2
+    "n": 36,
+    "crps": 4.602846941213181,
+    "crps_relative": 0.2558046484357375,
+    "mean_pinball_loss": 2.0992819215587257,
+    "mean_interval_width": 13.994444444444445,
+    "mean_relative_interval_width": 0.6535030172099383,
+    "mean_median_abs_error": 6.111352629167148,
+    "ece_confidence": 0.8
   },
   "by_model": {
     "gpt-4o-demo": {
-      "n": 6,
-      "crps": 2.5359691377475158,
-      "mean_pinball_loss": 0.7999999999999999,
-      "mean_interval_width": 24.0,
-      "mean_median_abs_error": 0.0,
-      "ece_confidence": 0.25
+      "n": 18,
+      "crps": 4.407637334962988,
+      "crps_relative": 0.23459775801708385,
+      "mean_pinball_loss": 1.9499483512138016,
+      "mean_interval_width": 18.88888888888889,
+      "mean_relative_interval_width": 0.9823468056667325,
+      "mean_median_abs_error": 6.111352629167148,
+      "ece_confidence": 0.75
     },
     "gpt-4o-mini-demo": {
-      "n": 6,
-      "crps": 2.1133076147895973,
-      "mean_pinball_loss": 0.6666666666666666,
-      "mean_interval_width": 20.0,
-      "mean_median_abs_error": 0.0,
-      "ece_confidence": 0.15000000000000002
+      "n": 18,
+      "crps": 4.798056547463374,
+      "crps_relative": 0.2770115388543911,
+      "mean_pinball_loss": 2.2486154919036503,
+      "mean_interval_width": 9.100000000000001,
+      "mean_relative_interval_width": 0.3246592287531438,
+      "mean_median_abs_error": 6.111352629167148,
+      "ece_confidence": 0.85
     }
   },
   "by_stratum": {
     "regional_inference": {
-      "n": 4,
-      "crps": 2.2189729955290765,
-      "mean_pinball_loss": 0.7,
-      "mean_interval_width": 21.0,
-      "mean_median_abs_error": 0.0,
-      "ece_confidence": 0.2
+      "n": 12,
+      "crps": 4.557410929407923,
+      "crps_relative": 0.2832202862887527,
+      "mean_pinball_loss": 2.063961940836941,
+      "mean_interval_width": 13.65,
+      "mean_relative_interval_width": 0.6865031071014727,
+      "mean_median_abs_error": 6.050849567099566,
+      "ece_confidence": 0.8
     },
     "specific_station": {
-      "n": 4,
-      "crps": 1.9019768533106371,
-      "mean_pinball_loss": 0.6,
-      "mean_interval_width": 18.0,
-      "mean_median_abs_error": 0.0,
-      "ece_confidence": 0.2
+      "n": 12,
+      "crps": 4.768338434908242,
+      "crps_relative": 0.2493348378461676,
+      "mean_pinball_loss": 2.1857407407407408,
+      "mean_interval_width": 13.200000000000001,
+      "mean_relative_interval_width": 0.558376008588216,
+      "mean_median_abs_error": 6.377708333333334,
+      "ece_confidence": 0.8
     },
     "underspecified": {
-      "n": 4,
-      "crps": 2.8529652799659555,
-      "mean_pinball_loss": 0.9,
-      "mean_interval_width": 27.0,
-      "mean_median_abs_error": 0.0,
-      "ece_confidence": 0.2
+      "n": 12,
+      "crps": 4.482791459323377,
+      "crps_relative": 0.23485882117229231,
+      "mean_pinball_loss": 2.0481430830984952,
+      "mean_interval_width": 15.133333333333333,
+      "mean_relative_interval_width": 0.7156299359401256,
+      "mean_median_abs_error": 5.905499987068541,
+      "ece_confidence": 0.8
+    }
+  },
+  "by_season": {
+    "annual": {
+      "n": 12,
+      "crps": 6.282096034088821,
+      "crps_relative": 0.11700198906037974,
+      "mean_pinball_loss": 2.8208461230427244,
+      "mean_interval_width": 21.45,
+      "mean_relative_interval_width": 0.40089558191391655,
+      "mean_median_abs_error": 8.38611809846033,
+      "ece_confidence": 0.8
+    },
+    "dry_season": {
+      "n": 12,
+      "crps": 2.682739221348745,
+      "crps_relative": 0.4994475703156042,
+      "mean_pinball_loss": 1.256272128405939,
+      "mean_interval_width": 6.05,
+      "mean_relative_interval_width": 1.1057230099098267,
+      "mean_median_abs_error": 3.414131791483113,
+      "ece_confidence": 0.8
+    },
+    "wet_season": {
+      "n": 12,
+      "crps": 4.843705568201977,
+      "crps_relative": 0.1509643859312286,
+      "mean_pinball_loss": 2.220727513227513,
+      "mean_interval_width": 14.483333333333334,
+      "mean_relative_interval_width": 0.4538904598060709,
+      "mean_median_abs_error": 6.5338079975579975,
+      "ece_confidence": 0.8
     }
   },
   "by_prompt_variant": {
     "natural": {
-      "n": 6,
-      "crps": 2.324638376268556,
-      "mean_pinball_loss": 0.7333333333333334,
-      "mean_interval_width": 22.0,
-      "mean_median_abs_error": 0.0,
-      "ece_confidence": 0.2
+      "n": 18,
+      "crps": 4.60284694121318,
+      "crps_relative": 0.2558046484357375,
+      "mean_pinball_loss": 2.0992819215587257,
+      "mean_interval_width": 13.994444444444445,
+      "mean_relative_interval_width": 0.6535030172099381,
+      "mean_median_abs_error": 6.111352629167147,
+      "ece_confidence": 0.8
     },
     "statistical": {
-      "n": 6,
-      "crps": 2.324638376268556,
-      "mean_pinball_loss": 0.7333333333333334,
-      "mean_interval_width": 22.0,
-      "mean_median_abs_error": 0.0,
-      "ece_confidence": 0.2
+      "n": 18,
+      "crps": 4.60284694121318,
+      "crps_relative": 0.2558046484357375,
+      "mean_pinball_loss": 2.0992819215587257,
+      "mean_interval_width": 13.994444444444445,
+      "mean_relative_interval_width": 0.6535030172099381,
+      "mean_median_abs_error": 6.111352629167147,
+      "ece_confidence": 0.8
     }
+  },
+  "power_analysis": {
+    "method": "Paired t on per-scenario crps_relative differences; alpha=0.05 two-sided, power=0.80. Treats scenarios as exchangeable, which overstates power given shared locations; with multiple pairs, apply a multiple-comparison correction before claiming significance.",
+    "pairs": [
+      {
+        "model_a": "gpt-4o-demo",
+        "model_b": "gpt-4o-mini-demo",
+        "n_scenarios": 18,
+        "delta_crps_relative": -0.04241378083730731,
+        "sd_of_paired_diffs": 0.05635130809414185,
+        "t_paired": -3.1932964532837005,
+        "scenarios_needed_80pct_power": 13.839171475557233,
+        "min_detectable_delta_at_n": 0.037189965943293414
+      }
+    ]
+  },
+  "seasonal_consistency": {
+    "method": "gap = (p50_annual - p50_wet - p50_dry) / p50_annual per location x prompt-variant cell. Compare each model's mean_gap to target_gaps (the calibrated reference; nonzero because May is in neither season and quantiles are not additive). Large gap_spread means the model's annual and seasonal answers are internally inconsistent.",
+    "per_model": {
+      "gpt-4o-demo": {
+        "mean_gap": 0.2828956228956229,
+        "min_gap": 0.2777777777777778,
+        "max_gap": 0.2909090909090909,
+        "gap_spread": 0.013131313131313105,
+        "n_cells": 6
+      },
+      "gpt-4o-mini-demo": {
+        "mean_gap": 0.2828956228956229,
+        "min_gap": 0.2777777777777778,
+        "max_gap": 0.2909090909090909,
+        "gap_spread": 0.013131313131313105,
+        "n_cells": 6
+      }
+    },
+    "target_gaps": {
+      "gulf_city": 0.3171883682163365,
+      "miami": 0.2797171895713655,
+      "random_fl": 0.2981206726013847
+    }
+  },
+  "fawn_sync": {
+    "generated_at": "2026-06-10T01:34:29.745514+00:00",
+    "stations_included": [
+      "110",
+      "111",
+      "120",
+      "121",
+      "130",
+      "140",
+      "150",
+      "160",
+      "170",
+      "180",
+      "230",
+      "240",
+      "241",
+      "250",
+      "260",
+      "261",
+      "270",
+      "275",
+      "280",
+      "290",
+      "302",
+      "303",
+      "304",
+      "310",
+      "311",
+      "320",
+      "330",
+      "340",
+      "350",
+      "360",
+      "371",
+      "380",
+      "390",
+      "405",
+      "410",
+      "420",
+      "425",
+      "430",
+      "435",
+      "440",
+      "450",
+      "455",
+      "460",
+      "470",
+      "480",
+      "490"
+    ],
+    "scenario_count": 18
   }
 }

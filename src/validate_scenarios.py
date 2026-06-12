@@ -10,70 +10,68 @@ from pathlib import Path
 from src.schema import (
     FAWN_SYNC_PATH,
     SCENARIOS_PATH,
+    SEASON_MONTHS,
     Scenario,
     load_fawn_sync,
     load_scenarios,
 )
 
-STRATUM_COUNTS = {
-    "specific_station": 2,
-    "regional_inference": 2,
-    "underspecified": 2,
-}
+STRATA = ["specific_station", "regional_inference", "underspecified"]
+SEASONS = list(SEASON_MONTHS)
 PROMPT_VARIANTS = {"natural", "statistical"}
+EXPECTED_TOTAL = len(STRATA) * len(SEASONS) * len(PROMPT_VARIANTS)
 
 
 def validate_scenarios(scenarios: list[Scenario]) -> list[str]:
     errors: list[str] = []
-    expected = sum(STRATUM_COUNTS.values())
-    if len(scenarios) != expected:
-        errors.append(f"scenarios: expected {expected} rows, got {len(scenarios)}")
+    if len(scenarios) != EXPECTED_TOTAL:
+        errors.append(f"scenarios: expected {EXPECTED_TOTAL} rows, got {len(scenarios)}")
 
     ids = [s.id for s in scenarios]
     if len(ids) != len(set(ids)):
         errors.append("scenarios: duplicate id values")
 
-    by_stratum = Counter(s.stratum for s in scenarios)
-    for stratum, count in STRATUM_COUNTS.items():
-        if by_stratum[stratum] != count:
-            errors.append(
-                f"scenarios: stratum '{stratum}' expected {count} rows, got {by_stratum[stratum]}"
-            )
+    cells = Counter((s.stratum, s.season, s.prompt_variant) for s in scenarios)
+    for stratum in STRATA:
+        for season in SEASONS:
+            for variant in PROMPT_VARIANTS:
+                if cells[(stratum, season, variant)] != 1:
+                    errors.append(
+                        f"scenarios: expected exactly 1 row for "
+                        f"({stratum}, {season}, {variant}), got {cells[(stratum, season, variant)]}"
+                    )
 
-    by_variant = Counter(s.prompt_variant for s in scenarios)
-    for variant in PROMPT_VARIANTS:
-        if by_variant[variant] != 3:
-            errors.append(
-                f"scenarios: prompt_variant '{variant}' expected 3 rows, got {by_variant[variant]}"
-            )
-
-    for stratum in STRATUM_COUNTS:
-        variants = {s.prompt_variant for s in scenarios if s.stratum == stratum}
-        if variants != PROMPT_VARIANTS:
-            errors.append(f"scenarios: stratum '{stratum}' missing a prompt variant")
-
-    widths = [s.target_p90 - s.target_p10 for s in scenarios]
-    by_stratum_width = {
-        stratum: [s.target_p90 - s.target_p10 for s in scenarios if s.stratum == stratum]
-        for stratum in STRATUM_COUNTS
-    }
-    mean_widths = {k: sum(v) / len(v) for k, v in by_stratum_width.items() if v}
-    if mean_widths:
-        ordered = ["specific_station", "regional_inference", "underspecified"]
-        for i in range(len(ordered) - 1):
-            a, b = ordered[i], ordered[i + 1]
-            if a in mean_widths and b in mean_widths and mean_widths[a] >= mean_widths[b]:
+    # Within each season, curator interval width should widen as specificity drops.
+    for season in SEASONS:
+        widths: dict[str, list[float]] = {}
+        for s in scenarios:
+            if s.season == season:
+                widths.setdefault(s.stratum, []).append(s.target_p90 - s.target_p10)
+        means = {k: sum(v) / len(v) for k, v in widths.items() if v}
+        for i in range(len(STRATA) - 1):
+            a, b = STRATA[i], STRATA[i + 1]
+            if a in means and b in means and means[a] >= means[b]:
                 errors.append(
-                    f"scenarios: curator interval width should widen down specificity "
-                    f"({a}={mean_widths[a]:.1f} >= {b}={mean_widths[b]:.1f})"
+                    f"scenarios[{season}]: curator interval width should widen down "
+                    f"specificity ({a}={means[a]:.1f} >= {b}={means[b]:.1f})"
                 )
 
-    if min(widths) <= 0:
-        errors.append("scenarios: target interval widths must be positive")
-
     for s in scenarios:
+        if s.target_p90 - s.target_p10 <= 0:
+            errors.append(f"scenarios[{s.id}]: target interval width must be positive")
         if not s.location_description.strip():
             errors.append(f"scenarios[{s.id}]: empty location_description")
+
+    # Paired variants must share ground truth.
+    by_cell: dict[tuple[str, str], list[Scenario]] = {}
+    for s in scenarios:
+        by_cell.setdefault((s.stratum, s.season), []).append(s)
+    for (stratum, season), pair in by_cell.items():
+        targets = {(s.target_p10, s.target_p50, s.target_p90, s.fawn_station_id) for s in pair}
+        if len(targets) > 1:
+            errors.append(
+                f"scenarios: ({stratum}, {season}) prompt variants have mismatched targets/stations"
+            )
 
     return errors
 
@@ -97,9 +95,16 @@ def validate_fawn_sync(scenarios: list[Scenario], sync_path: Path) -> list[str]:
     if extra:
         errors.append(f"fawn_sync: stale scenario ids: {', '.join(extra)}")
 
+    season_by_id = {s.id: s.season for s in scenarios}
     for row in sync.scenarios.values():
         if not (row.p10 <= row.p50 <= row.p90):
             errors.append(f"fawn_sync[{row.scenario_id}]: quantiles not ordered")
+        expected_season = season_by_id.get(row.scenario_id)
+        if expected_season and row.season != expected_season:
+            errors.append(
+                f"fawn_sync[{row.scenario_id}]: season '{row.season}' != scenario "
+                f"season '{expected_season}' — regenerate with python -m src.fawn_sync"
+            )
 
     return errors
 
@@ -127,14 +132,16 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     strata = Counter(s.stratum for s in scenarios)
+    seasons = Counter(s.season for s in scenarios)
     sync = load_fawn_sync(FAWN_SYNC_PATH)
-    width_msg = (
+    sync_msg = (
         f"fawn sync present ({len(sync.scenarios)} scenarios)"
         if sync is not None
         else "fawn sync not present (using curator targets)"
     )
     print(
-        f"Validation OK: {len(scenarios)} scenarios, strata {dict(strata)}, {width_msg}"
+        f"Validation OK: {len(scenarios)} scenarios, strata {dict(strata)}, "
+        f"seasons {dict(seasons)}, {sync_msg}"
     )
     return 0
 

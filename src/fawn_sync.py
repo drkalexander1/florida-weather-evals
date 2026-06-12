@@ -1,9 +1,13 @@
-"""Build data/fawn_sync.json from FAWN yearly QAQC zip archives."""
+"""Build data/fawn_sync.json from FAWN yearly QAQC zip archives.
+
+Aggregates 15-minute rainfall to monthly totals, then assembles seasonal
+totals (annual, wet Jun-Sep, dry Dec-Feb) per station and season-year.
+"""
 
 from __future__ import annotations
 
 import argparse
-import json
+import calendar
 import re
 import sys
 import zipfile
@@ -17,6 +21,7 @@ import yaml
 from src.schema import (
     DATA_DIR,
     FAWN_SYNC_PATH,
+    SEASON_MONTHS,
     FawnScenarioSync,
     FawnSync,
     Scenario,
@@ -32,11 +37,14 @@ RAIN_FLAG_COL = "quality_flag_rain_2m_inches"
 BACKUP_COL = "rain_backup_2m_inches"
 BACKUP_FLAG_COL = "quality_flag_rain_backup_2m_inches"
 USECOLS = ["ID", "UTC", RAIN_COL, RAIN_FLAG_COL, BACKUP_COL, BACKUP_FLAG_COL]
-INTERVAL_HOURS = 0.25
+INTERVALS_PER_DAY = 96  # 15-minute intervals
 MAX_MISSING_FRAC = 0.05
 MIN_CLEAN_YEARS = 3
 YEAR_RE = re.compile(r"(20\d{2})")
 CHUNK_SIZE = 500_000
+
+# (station_id, season) -> list of seasonal totals, one per clean season-year
+StationSeasonValues = dict[tuple[int, str], list[float]]
 
 
 def load_station_catalog(path: Path | None = None) -> dict[str, str]:
@@ -108,6 +116,7 @@ def _resolve_rain(df: pd.DataFrame) -> pd.Series:
 
 
 def _clean_chunk(chunk: pd.DataFrame, station_ids: set[int] | None) -> pd.DataFrame:
+    """Reduce a raw CSV chunk to monthly sums of good rainfall intervals."""
     chunk = chunk[chunk["ID"] != "ID"].copy()
     chunk["ID"] = pd.to_numeric(chunk["ID"], errors="coerce")
     chunk = chunk.dropna(subset=["ID"])
@@ -115,12 +124,17 @@ def _clean_chunk(chunk: pd.DataFrame, station_ids: set[int] | None) -> pd.DataFr
     if station_ids is not None:
         chunk = chunk[chunk["ID"].isin(station_ids)]
     if chunk.empty:
-        return chunk
+        return pd.DataFrame(columns=["ID", "year", "month", "total", "good_n"])
     chunk["timestamp"] = pd.to_datetime(chunk["UTC"], errors="coerce")
     chunk = chunk.dropna(subset=["timestamp"])
     chunk["year"] = chunk["timestamp"].dt.year
+    chunk["month"] = chunk["timestamp"].dt.month
     chunk["rain_inches"] = _resolve_rain(chunk)
-    return chunk[["ID", "year", "rain_inches"]]
+    return (
+        chunk.groupby(["ID", "year", "month"])
+        .agg(total=("rain_inches", "sum"), good_n=("rain_inches", "count"))
+        .reset_index()
+    )
 
 
 def read_year_zip(
@@ -154,18 +168,63 @@ def read_year_zip(
                         parts.append(cleaned)
 
     if not parts:
-        return pd.DataFrame(columns=["ID", "year", "rain_inches"])
-    return pd.concat(parts, ignore_index=True)
-
-
-def annual_totals(intervals: pd.DataFrame) -> pd.DataFrame:
-    grouped = intervals.groupby(["ID", "year"]).agg(
-        total=("rain_inches", "sum"),
-        n=("rain_inches", "count"),
-        missing=("rain_inches", lambda s: s.isna().sum()),
+        return pd.DataFrame(columns=["ID", "year", "month", "total", "good_n"])
+    combined = pd.concat(parts, ignore_index=True)
+    # Chunk boundaries can split a month; re-sum.
+    return (
+        combined.groupby(["ID", "year", "month"], as_index=False)
+        .agg(total=("total", "sum"), good_n=("good_n", "sum"))
     )
-    grouped["missing_frac"] = grouped["missing"] / grouped["n"]
-    return grouped[grouped["missing_frac"] <= MAX_MISSING_FRAC]
+
+
+def _expected_intervals(year: int, month: int) -> int:
+    return calendar.monthrange(year, month)[1] * INTERVALS_PER_DAY
+
+
+def seasonal_totals(monthly: pd.DataFrame) -> StationSeasonValues:
+    """Assemble per-station seasonal totals from monthly aggregates.
+
+    A season-year counts as clean when every month of the window is present
+    and the combined good-interval coverage is at least 1 - MAX_MISSING_FRAC.
+    December is assigned to the following dry-season year.
+    """
+    by_key: dict[tuple[int, int, int], tuple[float, int]] = {}
+    for row in monthly.itertuples(index=False):
+        by_key[(int(row.ID), int(row.year), int(row.month))] = (
+            float(row.total),
+            int(row.good_n),
+        )
+
+    station_ids = sorted({int(sid) for sid, _, _ in by_key})
+    year_lo = min(yr for _, yr, _ in by_key)
+    year_hi = max(yr for _, yr, _ in by_key)
+
+    values: StationSeasonValues = {}
+    for season, months in SEASON_MONTHS.items():
+        for sid in station_ids:
+            totals: list[float] = []
+            for season_year in range(year_lo, year_hi + 2):
+                total = 0.0
+                good = 0
+                expected = 0
+                complete = True
+                for month in months:
+                    cal_year = season_year - 1 if (season == "dry_season" and month == 12) else season_year
+                    entry = by_key.get((sid, cal_year, month))
+                    if entry is None:
+                        complete = False
+                        break
+                    total += entry[0]
+                    good += entry[1]
+                    expected += _expected_intervals(cal_year, month)
+                if not complete or expected == 0:
+                    continue
+                if 1.0 - good / expected > MAX_MISSING_FRAC:
+                    continue
+                totals.append(round(total, 4))
+            if totals:
+                values[(sid, season)] = totals
+    return values
 
 
 def distribution_stats(values: list[float]) -> dict[str, float]:
@@ -186,7 +245,7 @@ def load_from_year_zips(
     year_min: int | None,
     year_max: int | None,
     extract_zips: bool,
-) -> tuple[dict[int, list[float]], set[int]]:
+) -> tuple[StationSeasonValues, set[int]]:
     zips = discover_zip_files(raw_dir)
     if not zips:
         raise FileNotFoundError(
@@ -204,46 +263,43 @@ def load_from_year_zips(
     if not selected:
         raise ValueError("No zip files matched the requested year range")
 
-    per_year: dict[tuple[int, int], float] = {}
+    monthly_parts: list[pd.DataFrame] = []
     years_seen: set[int] = set()
-
     for year, zip_path in selected:
         print(f"Reading {zip_path.name} ...")
-        intervals = read_year_zip(
+        monthly = read_year_zip(
             zip_path,
             station_ids=station_ids,
             extract_dir=EXTRACT_DIR if extract_zips else None,
         )
-        if intervals.empty:
-            continue
-        totals = annual_totals(intervals)
-        for (sid, yr), row in totals.iterrows():
-            sid_int = int(sid)
-            yr_int = int(yr)
-            per_year[(sid_int, yr_int)] = float(row["total"])
-            years_seen.add(yr_int)
+        if not monthly.empty:
+            monthly_parts.append(monthly)
+            years_seen.add(year)
 
-    station_values: dict[int, list[float]] = {sid: [] for sid in station_ids}
-    for (sid, _yr), total in sorted(per_year.items()):
-        if sid in station_values:
-            station_values[sid].append(total)
+    if not monthly_parts:
+        raise ValueError("No station data loaded from zips")
 
-    return station_values, years_seen
+    all_monthly = (
+        pd.concat(monthly_parts, ignore_index=True)
+        .groupby(["ID", "year", "month"], as_index=False)
+        .agg(total=("total", "sum"), good_n=("good_n", "sum"))
+    )
+    return seasonal_totals(all_monthly), years_seen
 
 
 def _prune_station_values(
-    station_values: dict[int, list[float]],
+    station_values: StationSeasonValues,
     *,
     required: set[int],
-) -> dict[int, list[float]]:
-    pruned: dict[int, list[float]] = {}
-    for sid, values in station_values.items():
+) -> StationSeasonValues:
+    pruned: StationSeasonValues = {}
+    for (sid, season), values in station_values.items():
         if len(values) >= MIN_CLEAN_YEARS:
-            pruned[sid] = values
+            pruned[(sid, season)] = values
         elif sid in required:
             raise ValueError(
-                f"Station {sid}: only {len(values)} clean years after filtering "
-                f"(need >= {MIN_CLEAN_YEARS}). Download more yearly zips."
+                f"Station {sid} {season}: only {len(values)} clean season-years after "
+                f"filtering (need >= {MIN_CLEAN_YEARS}). Download more yearly zips."
             )
     return pruned
 
@@ -286,27 +342,31 @@ def build_sync(
         station_values,
         required=scenario_station_ids,
     )
+    if not station_values:
+        raise ValueError("No station-season totals loaded")
 
-    pooled: list[float] = []
-    for sid in sorted(station_values):
-        pooled.extend(station_values[sid])
-
-    if not pooled:
-        raise ValueError("No station-year totals loaded")
+    pooled: dict[str, list[float]] = {season: [] for season in SEASON_MONTHS}
+    for (sid, season) in sorted(station_values):
+        pooled[season].extend(station_values[(sid, season)])
 
     scenario_rows: dict[str, FawnScenarioSync] = {}
     for sc in scenarios:
         if sc.fawn_station_id:
             sid = int(sc.fawn_station_id)
-            if sid not in station_values:
-                raise ValueError(f"Scenario {sc.id} references unknown station {sid}")
-            ref = station_values[sid]
+            ref = station_values.get((sid, sc.season))
+            if not ref:
+                raise ValueError(
+                    f"Scenario {sc.id}: no clean {sc.season} data for station {sid}"
+                )
         else:
-            ref = pooled
+            ref = pooled[sc.season]
+            if not ref:
+                raise ValueError(f"Scenario {sc.id}: empty pooled {sc.season} distribution")
         stats = distribution_stats(ref)
         scenario_rows[sc.id] = FawnScenarioSync(
             scenario_id=sc.id,
             fawn_station_id=sc.fawn_station_id,
+            season=sc.season,
             reference_years=ref,
             target_p10_curator=float(sc.target_p10),
             target_p50_curator=float(sc.target_p50),
@@ -315,18 +375,19 @@ def build_sync(
         )
 
     return FawnSync(
-        schema_version=1,
+        schema_version=2,
         generated_at=datetime.now(timezone.utc).isoformat(),
-        method="fawn_annual_totals",
+        method="fawn_seasonal_totals",
         method_note=(
-            "Read yearly QAQC zip archives (all stations per file), skip repeated header rows, "
-            "sum rain_2m_inches to annual totals per station (values are inches per 15-min interval). "
-            "Primary rain when quality flag is 0; otherwise backup when backup "
-            f"flag is 0. Exclude station-years with >{int(MAX_MISSING_FRAC * 100)}% missing intervals."
+            "Read yearly QAQC zip archives, aggregate 15-min rainfall to monthly totals, then "
+            "assemble seasonal totals per station (annual Jan-Dec, wet Jun-Sep, dry Dec-Feb with "
+            "December assigned to the following season-year). Primary rain when quality flag is 0; "
+            "otherwise backup when backup flag is 0. Exclude station-season-years with "
+            f">{int(MAX_MISSING_FRAC * 100)}% missing intervals or missing months."
         ),
         region="US-FL",
         years=sorted(years_seen),
-        stations_included=sorted(str(sid) for sid in station_values),
+        stations_included=sorted({str(sid) for sid, _ in station_values}),
         scenarios=scenario_rows,
     )
 

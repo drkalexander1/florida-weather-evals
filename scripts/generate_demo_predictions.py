@@ -10,19 +10,17 @@ from src.schema import Prediction, PredictionRecord, Scenario, load_scenarios
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "results" / "demo"
 
-# Models that fail calibration: same width everywhere
-BAD_WIDTH = 20.0
-
 
 def synthetic_quantiles(sc: Scenario, model: str) -> tuple[float, float, float]:
     p50 = float(sc.target_p50)
     if "mini" in model:
-        # Overconfident: narrow intervals regardless of stratum
-        half = BAD_WIDTH / 2
-        return p50 - half, p50, p50 + half
-    # Better calibrated: match target spread with slight bias
+        # Overconfident failure mode: same relative width regardless of
+        # stratum or season — no widening for underspecified questions.
+        half = max(0.15 * p50, 0.5)
+        return max(p50 - half, 0.0), p50, p50 + half
+    # Better-calibrated model: roughly matches the target spread.
     spread = float(sc.target_p90 - sc.target_p10)
-    return p50 - spread / 2, p50, p50 + spread / 2
+    return max(p50 - spread / 2, 0.0), p50, p50 + spread / 2
 
 
 def main() -> None:

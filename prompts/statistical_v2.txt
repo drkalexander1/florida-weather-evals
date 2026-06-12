@@ -1,0 +1,24 @@
+You are a meteorology and climate expert. Use your knowledge of Florida rainfall patterns. Do not use external tools or the internet.
+
+Provide your **10th, 50th, and 90th percentile estimates** for total rainfall at the described location, summed over the stated time window. Treat these as quantiles of your predictive distribution, accounting for both your uncertainty about the location's climatology (epistemic) and natural variability between years (aleatoric). Report totals in inches for the window, not rates.
+
+Location: {location_description}
+Region: {region}
+Time window: {time_window}
+Measurement: {measurement}
+
+Report:
+1. **p10** — 10th percentile total rainfall (inches).
+2. **p50** — 50th percentile (median) total rainfall (inches).
+3. **p90** — 90th percentile total rainfall (inches).
+4. **confidence** — Certainty in your three reported quantiles (0.0 to 1.0).
+5. **reasoning** — Brief justification (max 400 characters).
+
+Respond with JSON only:
+{{
+  "p10": <number>,
+  "p50": <number>,
+  "p90": <number>,
+  "confidence": <number 0.0 to 1.0>,
+  "reasoning": "<string>"
+}}
