@@ -1,0 +1,296 @@
+{
+  "target_source": "fawn_sync",
+  "overall": {
+    "n": 72,
+    "crps": 4.737596230555638,
+    "crps_relative": 0.2603689352477782,
+    "mean_pinball_loss": 2.08763243800164,
+    "mean_interval_width": 18.915277777777778,
+    "mean_relative_interval_width": 0.9224077494401057,
+    "mean_median_abs_error": 6.5699874992349585,
+    "ece_confidence": 0.66125
+  },
+  "by_model": {
+    "claude-fable-5": {
+      "n": 18,
+      "crps": 4.362372486649962,
+      "crps_relative": 0.2295914700050839,
+      "mean_pinball_loss": 1.9085187729839415,
+      "mean_interval_width": 18.494444444444444,
+      "mean_relative_interval_width": 0.9187026887760393,
+      "mean_median_abs_error": 6.13478965138237,
+      "ece_confidence": 0.6166666666666666
+    },
+    "claude-haiku-4-5": {
+      "n": 18,
+      "crps": 5.33592206510198,
+      "crps_relative": 0.2983181142365234,
+      "mean_pinball_loss": 2.388113244778922,
+      "mean_interval_width": 18.194444444444443,
+      "mean_relative_interval_width": 0.7856280359526594,
+      "mean_median_abs_error": 7.318080775967281,
+      "ece_confidence": 0.7799999999999999
+    },
+    "claude-opus-4-8": {
+      "n": 18,
+      "crps": 4.603043298429168,
+      "crps_relative": 0.26002590998038566,
+      "mean_pinball_loss": 2.0353107451703307,
+      "mean_interval_width": 18.25,
+      "mean_relative_interval_width": 0.9495008549092714,
+      "mean_median_abs_error": 6.367966699289595,
+      "ece_confidence": 0.611111111111111
+    },
+    "claude-sonnet-4-6": {
+      "n": 18,
+      "crps": 4.6490470720414425,
+      "crps_relative": 0.2535402467691197,
+      "mean_pinball_loss": 2.018586989073366,
+      "mean_interval_width": 20.72222222222222,
+      "mean_relative_interval_width": 1.0357994181224532,
+      "mean_median_abs_error": 6.4591128703005865,
+      "ece_confidence": 0.6372222222222222
+    }
+  },
+  "by_stratum": {
+    "regional_inference": {
+      "n": 24,
+      "crps": 4.901677656359789,
+      "crps_relative": 0.3072357125983536,
+      "mean_pinball_loss": 2.1488334235209234,
+      "mean_interval_width": 18.383333333333333,
+      "mean_relative_interval_width": 1.0136707468798039,
+      "mean_median_abs_error": 6.683671536796537,
+      "ece_confidence": 0.6579166666666667
+    },
+    "specific_station": {
+      "n": 24,
+      "crps": 4.750006043755614,
+      "crps_relative": 0.24241936103290254,
+      "mean_pinball_loss": 2.081657986111111,
+      "mean_interval_width": 20.2375,
+      "mean_relative_interval_width": 0.8796027790220987,
+      "mean_median_abs_error": 6.725381944444446,
+      "ece_confidence": 0.7008333333333333
+    },
+    "underspecified": {
+      "n": 24,
+      "crps": 4.5611049915515105,
+      "crps_relative": 0.23145173211207837,
+      "mean_pinball_loss": 2.032405904372886,
+      "mean_interval_width": 18.125,
+      "mean_relative_interval_width": 0.8739497224184148,
+      "mean_median_abs_error": 6.300909016463894,
+      "ece_confidence": 0.625
+    }
+  },
+  "by_season": {
+    "annual": {
+      "n": 24,
+      "crps": 6.30235819322786,
+      "crps_relative": 0.11743627191387519,
+      "mean_pinball_loss": 2.749892017872904,
+      "mean_interval_width": 26.833333333333332,
+      "mean_relative_interval_width": 0.49799223987005603,
+      "mean_median_abs_error": 8.74454248185741,
+      "ece_confidence": 0.68125
+    },
+    "dry_season": {
+      "n": 24,
+      "crps": 2.663846797036723,
+      "crps_relative": 0.5000286457306647,
+      "mean_pinball_loss": 1.1959832354380813,
+      "mean_interval_width": 8.620833333333334,
+      "mean_relative_interval_width": 1.6034786148280162,
+      "mean_median_abs_error": 3.602721793930494,
+      "ece_confidence": 0.6341666666666667
+    },
+    "wet_season": {
+      "n": 24,
+      "crps": 5.24658370140233,
+      "crps_relative": 0.16364188809879446,
+      "mean_pinball_loss": 2.3170220606939353,
+      "mean_interval_width": 21.291666666666668,
+      "mean_relative_interval_width": 0.665752393622245,
+      "mean_median_abs_error": 7.362698221916972,
+      "ece_confidence": 0.6683333333333333
+    }
+  },
+  "by_prompt_variant": {
+    "natural": {
+      "n": 36,
+      "crps": 4.896921926767726,
+      "crps_relative": 0.27315690547439025,
+      "mean_pinball_loss": 2.1555495379715857,
+      "mean_interval_width": 18.916666666666668,
+      "mean_relative_interval_width": 0.9218627479129761,
+      "mean_median_abs_error": 6.786258608597206,
+      "ece_confidence": 0.6594444444444444
+    },
+    "statistical": {
+      "n": 36,
+      "crps": 4.578270534343549,
+      "crps_relative": 0.24758096502116608,
+      "mean_pinball_loss": 2.019715338031695,
+      "mean_interval_width": 18.91388888888889,
+      "mean_relative_interval_width": 0.9229527509672355,
+      "mean_median_abs_error": 6.353716389872711,
+      "ece_confidence": 0.6630555555555555
+    }
+  },
+  "power_analysis": {
+    "method": "Paired t on per-scenario crps_relative differences; alpha=0.05 two-sided, power=0.80. Treats scenarios as exchangeable, which overstates power given shared locations; with multiple pairs, apply a multiple-comparison correction before claiming significance.",
+    "pairs": [
+      {
+        "model_a": "claude-fable-5",
+        "model_b": "claude-haiku-4-5",
+        "n_scenarios": 18,
+        "delta_crps_relative": -0.06872664423143944,
+        "sd_of_paired_diffs": 0.10988609891941843,
+        "t_paired": -2.653497211865714,
+        "scenarios_needed_80pct_power": 20.042472506313544,
+        "min_detectable_delta_at_n": 0.07252112532378609
+      },
+      {
+        "model_a": "claude-fable-5",
+        "model_b": "claude-opus-4-8",
+        "n_scenarios": 18,
+        "delta_crps_relative": -0.03043443997530178,
+        "sd_of_paired_diffs": 0.06707829035916653,
+        "t_paired": -1.9249505710048236,
+        "scenarios_needed_80pct_power": 38.08460043003403,
+        "min_detectable_delta_at_n": 0.04426941305114242
+      },
+      {
+        "model_a": "claude-fable-5",
+        "model_b": "claude-sonnet-4-6",
+        "n_scenarios": 18,
+        "delta_crps_relative": -0.02394877676403577,
+        "sd_of_paired_diffs": 0.046594384874707476,
+        "t_paired": -2.1806502002130568,
+        "scenarios_needed_80pct_power": 29.67676491801136,
+        "min_detectable_delta_at_n": 0.03075072514278012
+      },
+      {
+        "model_a": "claude-haiku-4-5",
+        "model_b": "claude-opus-4-8",
+        "n_scenarios": 18,
+        "delta_crps_relative": 0.03829220425613765,
+        "sd_of_paired_diffs": 0.07034220989553547,
+        "t_paired": 2.3095672430229257,
+        "scenarios_needed_80pct_power": 26.456192705622005,
+        "min_detectable_delta_at_n": 0.046423490046061895
+      },
+      {
+        "model_a": "claude-haiku-4-5",
+        "model_b": "claude-sonnet-4-6",
+        "n_scenarios": 18,
+        "delta_crps_relative": 0.04477786746740367,
+        "sd_of_paired_diffs": 0.10193839990833667,
+        "t_paired": 1.8636392426256363,
+        "scenarios_needed_80pct_power": 40.63168885851919,
+        "min_detectable_delta_at_n": 0.0672759115825916
+      },
+      {
+        "model_a": "claude-opus-4-8",
+        "model_b": "claude-sonnet-4-6",
+        "n_scenarios": 18,
+        "delta_crps_relative": 0.006485663211266019,
+        "sd_of_paired_diffs": 0.047567138770576896,
+        "t_paired": 0.5784736970576507,
+        "scenarios_needed_80pct_power": 421.71721973225016,
+        "min_detectable_delta_at_n": 0.03139270996056203
+      }
+    ]
+  },
+  "seasonal_consistency": {
+    "method": "gap = (p50_annual - p50_wet - p50_dry) / p50_annual per location x prompt-variant cell. Compare each model's mean_gap to target_gaps (the calibrated reference; nonzero because May is in neither season and quantiles are not additive). Large gap_spread means the model's annual and seasonal answers are internally inconsistent.",
+    "per_model": {
+      "claude-fable-5": {
+        "mean_gap": 0.32134256219416923,
+        "min_gap": 0.2641509433962264,
+        "max_gap": 0.35964912280701755,
+        "gap_spread": 0.09549817941079114,
+        "n_cells": 6
+      },
+      "claude-haiku-4-5": {
+        "mean_gap": 0.2467678577893632,
+        "min_gap": -0.08181818181818182,
+        "max_gap": 0.46774193548387094,
+        "gap_spread": 0.5495601173020528,
+        "n_cells": 6
+      },
+      "claude-opus-4-8": {
+        "mean_gap": 0.3069966743322244,
+        "min_gap": 0.27049180327868855,
+        "max_gap": 0.3392857142857143,
+        "gap_spread": 0.06879391100702575,
+        "n_cells": 6
+      },
+      "claude-sonnet-4-6": {
+        "mean_gap": 0.3047056587379168,
+        "min_gap": 0.23148148148148148,
+        "max_gap": 0.3951612903225806,
+        "gap_spread": 0.16367980884109914,
+        "n_cells": 6
+      }
+    },
+    "target_gaps": {
+      "gulf_city": 0.3171883682163365,
+      "miami": 0.2797171895713655,
+      "random_fl": 0.2981206726013847
+    }
+  },
+  "fawn_sync": {
+    "generated_at": "2026-06-10T01:34:29.745514+00:00",
+    "stations_included": [
+      "110",
+      "111",
+      "120",
+      "121",
+      "130",
+      "140",
+      "150",
+      "160",
+      "170",
+      "180",
+      "230",
+      "240",
+      "241",
+      "250",
+      "260",
+      "261",
+      "270",
+      "275",
+      "280",
+      "290",
+      "302",
+      "303",
+      "304",
+      "310",
+      "311",
+      "320",
+      "330",
+      "340",
+      "350",
+      "360",
+      "371",
+      "380",
+      "390",
+      "405",
+      "410",
+      "420",
+      "425",
+      "430",
+      "435",
+      "440",
+      "450",
+      "455",
+      "460",
+      "470",
+      "480",
+      "490"
+    ],
+    "scenario_count": 18
+  }
+}

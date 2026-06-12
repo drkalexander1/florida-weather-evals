@@ -2,9 +2,9 @@
 
 LLM benchmark for Florida rainfall calibration: a **specificity gradient** crossed with a **seasonal gradient**, **natural vs. statistical** phrasing, and scoring on **CRPS** (quantile forecasts), **confidence calibration**, and **self-consistency checks**.
 
-Follow-on to the [Michigan bird eval](https://github.com/). Bird eval tested unknown unknowns; weather eval tests **known unknowns** — some questions have retrievable answers (Miami), others are underspecified by design (random Florida location). The design asks whether models widen their intervals as specificity decreases.
+Follow-on to the [Michigan bird eval](https://github.com/drkalexander1/michigan-bird-evals). Bird eval tested unknown unknowns; weather eval tests **known unknowns** — some questions have retrievable answers (Miami), others are underspecified by design (random Florida location). The design asks whether models widen their intervals as specificity decreases.
 
-**Design notes:** [weather-eval-design.md](weather-eval-design.md)
+**Design notes:** [weather-eval-design.md](weather-eval-design.md) · **Results write-up:** [RESULTS.md](RESULTS.md)
 
 ## Why this design
 

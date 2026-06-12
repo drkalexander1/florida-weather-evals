@@ -1,0 +1,212 @@
+{
+  "target_source": "fawn_sync",
+  "overall": {
+    "n": 36,
+    "crps": 5.222745575439559,
+    "crps_relative": 0.2714922800327915,
+    "mean_pinball_loss": 2.298247889481971,
+    "mean_interval_width": 21.930555555555557,
+    "mean_relative_interval_width": 0.9003161176012776,
+    "mean_median_abs_error": 7.294039165399738,
+    "ece_confidence": 0.8180555555555556
+  },
+  "by_model": {
+    "gpt-4o": {
+      "n": 18,
+      "crps": 5.534010340715041,
+      "crps_relative": 0.27356702057760246,
+      "mean_pinball_loss": 2.4285035423853842,
+      "mean_interval_width": 21.61111111111111,
+      "mean_relative_interval_width": 0.8906351720817811,
+      "mean_median_abs_error": 7.925744887632719,
+      "ece_confidence": 0.8000000000000002
+    },
+    "gpt-4o-mini": {
+      "n": 18,
+      "crps": 4.911480810164079,
+      "crps_relative": 0.2694175394879806,
+      "mean_pinball_loss": 2.1679922365785576,
+      "mean_interval_width": 22.25,
+      "mean_relative_interval_width": 0.909997063120774,
+      "mean_median_abs_error": 6.662333443166759,
+      "ece_confidence": 0.836111111111111
+    }
+  },
+  "by_stratum": {
+    "regional_inference": {
+      "n": 12,
+      "crps": 4.926505387597344,
+      "crps_relative": 0.2958682687983562,
+      "mean_pinball_loss": 2.1384803391053393,
+      "mean_interval_width": 21.458333333333332,
+      "mean_relative_interval_width": 0.9854447951194213,
+      "mean_median_abs_error": 6.848831168831168,
+      "ece_confidence": 0.8166666666666668
+    },
+    "specific_station": {
+      "n": 12,
+      "crps": 5.4108065185152645,
+      "crps_relative": 0.2605723655446928,
+      "mean_pinball_loss": 2.3867361111111114,
+      "mean_interval_width": 22.75,
+      "mean_relative_interval_width": 0.8316389889223728,
+      "mean_median_abs_error": 7.486701388888889,
+      "ece_confidence": 0.8208333333333334
+    },
+    "underspecified": {
+      "n": 12,
+      "crps": 5.330924820206073,
+      "crps_relative": 0.25803620575532565,
+      "mean_pinball_loss": 2.369527218229463,
+      "mean_interval_width": 21.583333333333332,
+      "mean_relative_interval_width": 0.8838645687620387,
+      "mean_median_abs_error": 7.546584938479158,
+      "ece_confidence": 0.8166666666666668
+    }
+  },
+  "by_season": {
+    "annual": {
+      "n": 12,
+      "crps": 6.334310970586309,
+      "crps_relative": 0.11812128325772242,
+      "mean_pinball_loss": 2.7502367168856856,
+      "mean_interval_width": 30.0,
+      "mean_relative_interval_width": 0.5590946924166663,
+      "mean_median_abs_error": 8.750079772236932,
+      "ece_confidence": 0.8250000000000001
+    },
+    "dry_season": {
+      "n": 12,
+      "crps": 2.6019804011291896,
+      "crps_relative": 0.48605704792552046,
+      "mean_pinball_loss": 1.1861548580518844,
+      "mean_interval_width": 6.625,
+      "mean_relative_interval_width": 1.2332713414008678,
+      "mean_median_abs_error": 3.5382060695056285,
+      "ece_confidence": 0.8083333333333335
+    },
+    "wet_season": {
+      "n": 12,
+      "crps": 6.731945354603183,
+      "crps_relative": 0.21029850891513177,
+      "mean_pinball_loss": 2.9583520935083434,
+      "mean_interval_width": 29.166666666666668,
+      "mean_relative_interval_width": 0.9085823189862987,
+      "mean_median_abs_error": 9.593831654456656,
+      "ece_confidence": 0.8208333333333334
+    }
+  },
+  "by_prompt_variant": {
+    "natural": {
+      "n": 18,
+      "crps": 5.265477701138928,
+      "crps_relative": 0.2823394883323888,
+      "mean_pinball_loss": 2.304819089057943,
+      "mean_interval_width": 23.63888888888889,
+      "mean_relative_interval_width": 0.9948969384247268,
+      "mean_median_abs_error": 7.365653185913814,
+      "ece_confidence": 0.8166666666666668
+    },
+    "statistical": {
+      "n": 18,
+      "crps": 5.180013449740195,
+      "crps_relative": 0.2606450717331943,
+      "mean_pinball_loss": 2.291676689905999,
+      "mean_interval_width": 20.22222222222222,
+      "mean_relative_interval_width": 0.8057352967778284,
+      "mean_median_abs_error": 7.222425144885664,
+      "ece_confidence": 0.8194444444444444
+    }
+  },
+  "power_analysis": {
+    "method": "Paired t on per-scenario crps_relative differences; alpha=0.05 two-sided, power=0.80. Treats scenarios as exchangeable, which overstates power given shared locations; with multiple pairs, apply a multiple-comparison correction before claiming significance.",
+    "pairs": [
+      {
+        "model_a": "gpt-4o",
+        "model_b": "gpt-4o-mini",
+        "n_scenarios": 18,
+        "delta_crps_relative": 0.004149481089621789,
+        "sd_of_paired_diffs": 0.0793809086032861,
+        "t_paired": 0.22177570918522707,
+        "scenarios_needed_80pct_power": 2869.1986274592205,
+        "min_detectable_delta_at_n": 0.05238872685212428
+      }
+    ]
+  },
+  "seasonal_consistency": {
+    "method": "gap = (p50_annual - p50_wet - p50_dry) / p50_annual per location x prompt-variant cell. Compare each model's mean_gap to target_gaps (the calibrated reference; nonzero because May is in neither season and quantiles are not additive). Large gap_spread means the model's annual and seasonal answers are internally inconsistent.",
+    "per_model": {
+      "gpt-4o": {
+        "mean_gap": 0.11957070707070705,
+        "min_gap": 0.045454545454545456,
+        "max_gap": 0.16666666666666666,
+        "gap_spread": 0.1212121212121212,
+        "n_cells": 6
+      },
+      "gpt-4o-mini": {
+        "mean_gap": 0.3220959595959596,
+        "min_gap": 0.24166666666666667,
+        "max_gap": 0.45454545454545453,
+        "gap_spread": 0.21287878787878786,
+        "n_cells": 6
+      }
+    },
+    "target_gaps": {
+      "gulf_city": 0.3171883682163365,
+      "miami": 0.2797171895713655,
+      "random_fl": 0.2981206726013847
+    }
+  },
+  "fawn_sync": {
+    "generated_at": "2026-06-10T01:34:29.745514+00:00",
+    "stations_included": [
+      "110",
+      "111",
+      "120",
+      "121",
+      "130",
+      "140",
+      "150",
+      "160",
+      "170",
+      "180",
+      "230",
+      "240",
+      "241",
+      "250",
+      "260",
+      "261",
+      "270",
+      "275",
+      "280",
+      "290",
+      "302",
+      "303",
+      "304",
+      "310",
+      "311",
+      "320",
+      "330",
+      "340",
+      "350",
+      "360",
+      "371",
+      "380",
+      "390",
+      "405",
+      "410",
+      "420",
+      "425",
+      "430",
+      "435",
+      "440",
+      "450",
+      "455",
+      "460",
+      "470",
+      "480",
+      "490"
+    ],
+    "scenario_count": 18
+  }
+}

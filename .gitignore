@@ -19,6 +19,8 @@ data/fawn_raw/extracted/
 
 results/*
 !results/demo/
+!results/anthropic-seasonal/
+!results/openai-seasonal/
 results/combined_*.json
 
 *.egg-info/

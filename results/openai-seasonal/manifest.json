@@ -1,0 +1,13 @@
+{
+  "created_at": "2026-06-10T02:05:14.754932+00:00",
+  "models": [
+    "gpt-4o-mini",
+    "gpt-4o"
+  ],
+  "scenario_count": 18,
+  "predictions_file": "predictions.jsonl",
+  "prompt_versions": {
+    "natural": "natural_v2",
+    "statistical": "statistical_v2"
+  }
+}

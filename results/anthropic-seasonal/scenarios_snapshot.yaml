@@ -1,0 +1,236 @@
+- fawn_station_id: '440'
+  id: miami_annual_natural
+  location_description: My grandma lives in Miami, Florida. How much rain should she
+    expect over the next year?
+  measurement: total rainfall (inches)
+  notes: Homestead FAWN station (Miami-Dade); annual anchor
+  prompt_variant: natural
+  region: Florida, USA
+  season: annual
+  stratum: specific_station
+  target_p10: 45.0
+  target_p50: 55.0
+  target_p90: 70.0
+- fawn_station_id: '440'
+  id: miami_annual_statistical
+  location_description: A FAWN agricultural monitoring station in Miami-Dade County,
+    Florida (Homestead, station 440).
+  measurement: total rainfall (inches)
+  notes: Same ground truth as miami_annual_natural
+  prompt_variant: statistical
+  region: Florida, USA
+  season: annual
+  stratum: specific_station
+  target_p10: 45.0
+  target_p50: 55.0
+  target_p90: 70.0
+- fawn_station_id: '480'
+  id: gulf_city_annual_natural
+  location_description: My grandma lives in a Gulf coast Florida city of about 100,000
+    people — not Miami or Tampa. How much rain should she expect over the next year?
+  measurement: total rainfall (inches)
+  notes: North Port FAWN station (Sarasota County Gulf coast)
+  prompt_variant: natural
+  region: Florida, USA
+  season: annual
+  stratum: regional_inference
+  target_p10: 42.0
+  target_p50: 54.0
+  target_p90: 68.0
+- fawn_station_id: '480'
+  id: gulf_city_annual_statistical
+  location_description: A Gulf coast Florida city with roughly 100,000 residents (North
+    Port, FAWN station 480).
+  measurement: total rainfall (inches)
+  notes: Same ground truth as gulf_city_annual_natural
+  prompt_variant: statistical
+  region: Florida, USA
+  season: annual
+  stratum: regional_inference
+  target_p10: 42.0
+  target_p50: 54.0
+  target_p90: 68.0
+- fawn_station_id: null
+  id: random_fl_annual_natural
+  location_description: My grandma lives somewhere in Florida — I do not know the
+    city. How much rain should she expect over the next year?
+  measurement: total rainfall (inches)
+  notes: Pooled across FAWN stations
+  prompt_variant: natural
+  region: Florida, USA
+  season: annual
+  stratum: underspecified
+  target_p10: 38.0
+  target_p50: 50.0
+  target_p90: 68.0
+- fawn_station_id: null
+  id: random_fl_annual_statistical
+  location_description: A random Florida agricultural monitoring station drawn uniformly
+    from the FAWN network (any of the ~50 stations statewide).
+  measurement: total rainfall (inches)
+  notes: Cross-station pooled distribution
+  prompt_variant: statistical
+  region: Florida, USA
+  season: annual
+  stratum: underspecified
+  target_p10: 38.0
+  target_p50: 50.0
+  target_p90: 68.0
+- fawn_station_id: '440'
+  id: miami_wet_natural
+  location_description: My grandma lives in Miami, Florida. How much rain should she
+    expect from June through September?
+  measurement: total rainfall (inches)
+  notes: Wet-season total at Homestead; sharp seasonal signal
+  prompt_variant: natural
+  region: Florida, USA
+  season: wet_season
+  stratum: specific_station
+  target_p10: 24.0
+  target_p50: 33.0
+  target_p90: 42.0
+- fawn_station_id: '440'
+  id: miami_wet_statistical
+  location_description: A FAWN agricultural monitoring station in Miami-Dade County,
+    Florida (Homestead, station 440).
+  measurement: total rainfall (inches)
+  notes: Same ground truth as miami_wet_natural
+  prompt_variant: statistical
+  region: Florida, USA
+  season: wet_season
+  stratum: specific_station
+  target_p10: 24.0
+  target_p50: 33.0
+  target_p90: 42.0
+- fawn_station_id: '480'
+  id: gulf_city_wet_natural
+  location_description: My grandma lives in a Gulf coast Florida city of about 100,000
+    people — not Miami or Tampa. How much rain should she expect from June through
+    September?
+  measurement: total rainfall (inches)
+  notes: Wet-season total at North Port
+  prompt_variant: natural
+  region: Florida, USA
+  season: wet_season
+  stratum: regional_inference
+  target_p10: 23.0
+  target_p50: 32.0
+  target_p90: 42.0
+- fawn_station_id: '480'
+  id: gulf_city_wet_statistical
+  location_description: A Gulf coast Florida city with roughly 100,000 residents (North
+    Port, FAWN station 480).
+  measurement: total rainfall (inches)
+  notes: Same ground truth as gulf_city_wet_natural
+  prompt_variant: statistical
+  region: Florida, USA
+  season: wet_season
+  stratum: regional_inference
+  target_p10: 23.0
+  target_p50: 32.0
+  target_p90: 42.0
+- fawn_station_id: null
+  id: random_fl_wet_natural
+  location_description: My grandma lives somewhere in Florida — I do not know the
+    city. How much rain should she expect from June through September?
+  measurement: total rainfall (inches)
+  notes: Pooled wet-season distribution
+  prompt_variant: natural
+  region: Florida, USA
+  season: wet_season
+  stratum: underspecified
+  target_p10: 18.0
+  target_p50: 28.0
+  target_p90: 40.0
+- fawn_station_id: null
+  id: random_fl_wet_statistical
+  location_description: A random Florida agricultural monitoring station drawn uniformly
+    from the FAWN network (any of the ~50 stations statewide).
+  measurement: total rainfall (inches)
+  notes: Cross-station pooled wet-season distribution
+  prompt_variant: statistical
+  region: Florida, USA
+  season: wet_season
+  stratum: underspecified
+  target_p10: 18.0
+  target_p50: 28.0
+  target_p90: 40.0
+- fawn_station_id: '440'
+  id: miami_dry_natural
+  location_description: My grandma lives in Miami, Florida. How much rain should she
+    expect from December through February?
+  measurement: total rainfall (inches)
+  notes: Dry-season total at Homestead; low totals, skewed distribution
+  prompt_variant: natural
+  region: Florida, USA
+  season: dry_season
+  stratum: specific_station
+  target_p10: 3.0
+  target_p50: 6.0
+  target_p90: 11.0
+- fawn_station_id: '440'
+  id: miami_dry_statistical
+  location_description: A FAWN agricultural monitoring station in Miami-Dade County,
+    Florida (Homestead, station 440).
+  measurement: total rainfall (inches)
+  notes: Same ground truth as miami_dry_natural
+  prompt_variant: statistical
+  region: Florida, USA
+  season: dry_season
+  stratum: specific_station
+  target_p10: 3.0
+  target_p50: 6.0
+  target_p90: 11.0
+- fawn_station_id: '480'
+  id: gulf_city_dry_natural
+  location_description: My grandma lives in a Gulf coast Florida city of about 100,000
+    people — not Miami or Tampa. How much rain should she expect from December through
+    February?
+  measurement: total rainfall (inches)
+  notes: Dry-season total at North Port
+  prompt_variant: natural
+  region: Florida, USA
+  season: dry_season
+  stratum: regional_inference
+  target_p10: 3.5
+  target_p50: 7.0
+  target_p90: 12.5
+- fawn_station_id: '480'
+  id: gulf_city_dry_statistical
+  location_description: A Gulf coast Florida city with roughly 100,000 residents (North
+    Port, FAWN station 480).
+  measurement: total rainfall (inches)
+  notes: Same ground truth as gulf_city_dry_natural
+  prompt_variant: statistical
+  region: Florida, USA
+  season: dry_season
+  stratum: regional_inference
+  target_p10: 3.5
+  target_p50: 7.0
+  target_p90: 12.5
+- fawn_station_id: null
+  id: random_fl_dry_natural
+  location_description: My grandma lives somewhere in Florida — I do not know the
+    city. How much rain should she expect from December through February?
+  measurement: total rainfall (inches)
+  notes: Pooled dry-season distribution; north FL gets more winter rain than south
+  prompt_variant: natural
+  region: Florida, USA
+  season: dry_season
+  stratum: underspecified
+  target_p10: 3.0
+  target_p50: 8.0
+  target_p90: 16.0
+- fawn_station_id: null
+  id: random_fl_dry_statistical
+  location_description: A random Florida agricultural monitoring station drawn uniformly
+    from the FAWN network (any of the ~50 stations statewide).
+  measurement: total rainfall (inches)
+  notes: Cross-station pooled dry-season distribution
+  prompt_variant: statistical
+  region: Florida, USA
+  season: dry_season
+  stratum: underspecified
+  target_p10: 3.0
+  target_p50: 8.0
+  target_p90: 16.0
